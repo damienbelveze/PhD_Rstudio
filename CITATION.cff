@@ -1,0 +1,40 @@
+cff-version: 1.2.0
+title: 'R, Rstudio, Rmarkdown'
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Martin
+    family-names: Amouzou
+    email: komlavi.amouzou@univ-rennes.fr
+    affiliation: Université Rennes 2
+  - given-names: Damien
+    family-names: Belvèze
+    email: damien.belveze@univ-rennes.fr
+    affiliation: Université de Rennes
+    orcid: 'https://orcid.org/0000-0001-9020-2148'
+repository-code: 'https://github.com/damienbelveze/PhD_Rstudio'
+abstract: >-
+  Importer des données dans plusieurs logiciels
+  successivement pour les traiter et en tirer des
+  visualisations est source d’erreurs et diminue les chances
+  de reproductibilité de l’expérience, surtout si ces
+  logiciels manquent de transparence. Le logiciel R et son
+  interface graphique Rstudio permettent d’éviter ces
+  ruptures logicielles et de traiter des données de façon
+  transparente, dynamique et reproductible. Vous modifiez
+  les données en entrée, il n’y a qu’à exécuter le script
+  pour mettre à jour le graphique liées à ce jeu de données.
+  Le répertoire CRAN dispose d’un nombre considérable de
+  librairies utiles pour traiter ces données, nous n’en
+  présenterons que quelques unes parmi les plus utilisées
+  pour traiter un jeu de données simple. 
+keywords:
+  - Rmarkdown
+  - R
+  - Rstudio
+  - data management
+  - data analysis
+  - data vizualisation
+license: CC-BY-4.0

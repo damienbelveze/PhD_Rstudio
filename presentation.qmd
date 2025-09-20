@@ -1,0 +1,47 @@
+---
+title: "R, Rstudio, Rmarkdown"
+subtitle: "traiter des données et documenter les traitements avec R"
+date: last-modified
+author:
+  - name: Martin Amouzou
+    affiliations:
+      - id: UR2
+        name: Université Rennes 2
+        city: Rennes
+      - id: ARDoISE
+        name: Atelier de la donnée ARDoISE
+        city: Rennes
+  - name: Damien Belvèze
+    affiliations:
+      - id: UR
+        name: Université de Rennes
+        city: Rennes
+      - id: ARDoISE
+        name: Atelier de la donnée ARDoISE
+        city: Rennes
+
+format: 
+    revealjs:
+        logo: images/logo_ardoise.png
+        footer: "CC-by:4.0 Martin Amouzou / Damien Belvèze"
+        slide-number: c/t
+#         show-slide-number: # print
+#       show-notes: separate-page
+        embed-resources: true
+#        transition: convex
+        from: markdown+emoji
+        theme: [default, style.css]
+#       title-slide-attributes: 
+#            data-background-color: "#fef1da"
+#       background-color: "#fef1da"
+        reveal_plugins: [menu]
+        reveal_options: 
+          menu: 
+            numbers: true
+
+bibliography: biblio.bib
+csl: apa.csl
+---
+
+
+# chapitre 1

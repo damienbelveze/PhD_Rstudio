@@ -1,0 +1,5 @@
+head:
+  - favicon: images/favicon.ico
+  - link:
+      rel: icon
+      href: images/favicon.ico
