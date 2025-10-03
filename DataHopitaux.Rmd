@@ -1,0 +1,215 @@
+---
+title: "Data Eng Train R 2"
+author: "Martin Amouzou"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE}
+library(dplyr)
+library(lubridate)
+```
+
+## Données générées
+
+```{r}
+# Génération jeu de données hospitalières
+set.seed(42)
+hopitaux <- c("CHU Rennes", "CHU Brest", "CH Saint-Brieuc", "CH Lorient", 
+              "CH Vannes", "CH Quimper", "CH Saint-Malo", "CH Fougères")
+
+n <- 500
+donnees <- data.frame(
+  hopital = sample(hopitaux, n, replace = TRUE),
+  date = sample(seq(as.Date('2025-01-01'), as.Date('2025-08-31'), by="day"), n, replace=TRUE),
+  nb_consultations = sample(c(NA, 50:300), n, replace = TRUE),
+  nb_passages_urgences = sample(100:400, n, replace = TRUE),
+  duree_moy_sejour = round(rnorm(n, mean=5, sd=2),1),
+  region = sample(c("Ille-et-Vilaine", "Finistère", "Côtes-d'Armor", "Morbihan"), n, replace=TRUE)
+)
+
+write.csv(donnees, "data_hopitaux_bretagne.csv", row.names = FALSE)
+
+```
+
+### Import des données
+
+```{r}
+# 1. Import des données brutes
+df <- read.csv("data_hopitaux_bretagne.csv")
+```
+
+```{r}
+# Vérification rapide
+str(df)
+summary(df)
+```
+
+## Exercice 1 --- Ingestion & Nettoyage
+
+### 2. Nettoyage
+
+#### 2.1 Corriger le type de la colonne date
+
+```{r}
+df$date <- as.Date(df$date)
+```
+
+#### 2.2 Remplacer les NA dans nb_consultations par la médiane
+
+```{r}
+med_consult <- median(df$nb_consultations, na.rm = TRUE)
+df$nb_consultations[is.na(df$nb_consultations)] <- med_consult
+```
+
+Corriger valeurs aberrantes de duree_moy_sejour (si \<0)
+
+```{r}
+df$duree_moy_sejour[df$duree_moy_sejour < 0] <- NA
+med_duree <- median(df$duree_moy_sejour, na.rm = TRUE)
+df$duree_moy_sejour[is.na(df$duree_moy_sejour)] <- med_duree
+```
+
+Supprimer doublons
+
+```{r}
+df <- distinct(df)
+```
+
+Ajout d'un nouvel indicateur : taux_consultations
+
+```{r}
+df <- df %>%
+  mutate(taux_consultations = round(nb_consultations / nb_passages_urgences, 2))
+```
+
+```{r}
+head(df)
+glimpse(df)
+```
+
+```{r}
+write.csv(df, "data_hopitaux_bretagne_clean.csv", row.names = FALSE)
+```
+
+```{r}
+# Vérification finale
+head(df, 10)
+```
+
+
+```{r}
+library(lubridate)
+```
+
+```{r}
+print(invalid_dates <- df[is.na(ymd(df$date)), ])
+```
+
+Conversion date :
+
+```{r}
+# Format standard : YYYY-MM-DD
+df$date <- as.Date(df$date, format="%Y-%m-%d")
+```
+
+```{r}
+# Si plusieurs formats possibles
+df$date <- parse_date_time(df$date, orders = c("ymd", "dmy", "mdy"))
+```
+
+Je commence par identifier les dates mal formées et les convertir avec un outil robuste comme lubridate. Pour les dates impossibles, je peux soit les supprimer si elles sont rares, soit les imputer en fonction du contexte métier. Je documente toujours ces choix pour garantir la traçabilité.
+
+## Exercice 2 --- Analyse & Visualisation
+
+Analyses exploratoires, visualisations et un mini-rapport RMarkdown
+
+```{r, echo=FALSE}
+# Librairies nécessaires
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(knitr)
+```
+
+```{r}
+# 1. Import du dataset nettoyé
+df <- read.csv("data_hopitaux_bretagne_clean.csv")
+df$date <- as.Date(df$date)
+```
+
+```{r}
+head(df, 10)
+```
+
+### Analyse exploratoire
+
+```{r}
+## 2.1 Indicateurs par hôpital
+summary_hopital <- df %>%
+  group_by(hopital) %>%
+  summarise(
+    total_consultations = sum(nb_consultations),
+    total_urgences = sum(nb_passages_urgences),
+    duree_moy_sejour = mean(duree_moy_sejour)
+  )
+print(summary_hopital)
+```
+
+```{r}
+## 2.2 Indicateurs par région et mois
+df$mois <- month(df$date, label = TRUE)
+summary_region <- df %>%
+  group_by(region, mois) %>%
+  summarise(
+    total_consultations = sum(nb_consultations),
+    total_urgences = sum(nb_passages_urgences),
+    taux_consultations = mean(taux_consultations)
+  )
+print(summary_region)
+```
+
+### Visualisations
+
+**Évolution mensuelle des consultations par région**
+
+```{r}
+ggplot(summary_region, aes(x=mois, y=total_consultations, color=region, group=region)) +
+  geom_line(size=1.2) +
+  geom_point() +
+  labs(title="Évolution mensuelle des consultations par région",
+       x="Mois", y="Nombre de consultations") +
+  theme_minimal()
+```
+
+**Boxplot de la durée moyenne de séjour par hôpital**
+
+```{r}
+ggplot(df, aes(x=hopital, y=duree_moy_sejour, fill=hopital)) +
+  geom_boxplot() +
+  labs(title="Durée moyenne de séjour par hôpital", y="Durée (jours)", x="Hôpital") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+**Heatmap consultations vs urgences par région**
+
+```{r, echo=FALSE}
+library(reshape2)
+```
+
+```{r}
+heatmap_data <- df %>%
+  group_by(region, hopital) %>%
+  summarise(total_consultations = sum(nb_consultations),
+            total_urgences = sum(nb_passages_urgences))
+heatmap_matrix <- acast(heatmap_data, region ~ hopital, value.var="total_consultations")
+
+heatmap(heatmap_matrix, Rowv=NA, Colv=NA, col=heat.colors(20), scale="column",
+        main="Consultations par région et hôpital")
+```
+
