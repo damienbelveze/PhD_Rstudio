@@ -1,5 +1,5 @@
 ---
-title: "template formations doctorales""
+title: "template formations doctorales"
 author: "Damien Belvèze"
 date: "20250103"
 ---
